@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function saveMessageToHistory(type, content, fileName = null) {
+    function saveMessageToHistory(type, sender, content, fileName = null) {
         let allChats = JSON.parse(localStorage.getItem('gemini_chats')) || [];
         if (!currentChatId) {
             currentChatId = 'chat_' + Date.now();
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const chatIndex = allChats.findIndex(c => c.id === currentChatId);
         if (chatIndex !== -1) {
-            allChats[chatIndex].messages.push({ type, sender: 'user', content, fileName });
+            allChats[chatIndex].messages.push({ type, sender, content, fileName });
         }
         localStorage.setItem('gemini_chats', JSON.stringify(allChats));
         loadUserHistory();
@@ -140,14 +140,33 @@ document.addEventListener('DOMContentLoaded', () => {
         let activeChat = allChats.find(c => c.id === chatId);
         if (activeChat) {
             activeChat.messages.forEach(msg => {
-                if (msg.type === 'text') {
-                    createUserMessageElement(msg.content);
-                } else if (msg.type === 'image') {
-                    createImageMessageElement(msg.content);
+                if (msg.sender === 'user') {
+                    if (msg.type === 'text') {
+                        createUserMessageElement(msg.content);
+                    } else if (msg.type === 'image') {
+                        createImageMessageElement(msg.content);
+                    } else {
+                        createFileCardElement(msg.fileName, msg.content);
+                    }
                 } else {
-                    createFileCardElement(msg.fileName, msg.content);
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message', 'bot');
+
+                    if (msg.type === 'image') {
+                        messageDiv.innerHTML = `<span class="sender-name">Gêmeos</span><div class="bot-payload">Aqui está a sua imagem:</div>`;
+                        const imgElement = document.createElement('img');
+                        imgElement.src = msg.content;
+                        imgElement.classList.add('uploaded-img');
+                        imgElement.style.marginTop = "10px";
+                        imgElement.style.borderRadius = "8px";
+                        messageDiv.appendChild(imgElement);
+                    } else {
+                        messageDiv.innerHTML = `<span class="sender-name">Gêmeos</span><div class="bot-payload">${marked.parse(msg.content)}</div>`;
+                    }
+                    chatContainer.appendChild(messageDiv);
                 }
             });
+            scrollToBottom();
         }
     }
 
@@ -157,8 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         hideWelcomeScreen();
         createUserMessageElement(text);
-        saveMessageToHistory('text', text);
-        
+        saveMessageToHistory('text', 'user', text);
+
         userInput.value = "";
         userInput.style.height = '24px';
 
@@ -168,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function typeResponseFast(element, text) {
         let i = 0;
         element.innerText = "";
-        
+
         function type() {
             if (i < text.length) {
                 element.innerText += text.substring(i, i + 3);
@@ -208,12 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 .trim();
 
             payloadTarget.innerText = "Preparando os pincéis... Gerando sua imagem 🎨";
-            
+
             const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=1024&height=1024&nologo=true`;
-            
+
             const imgElement = document.createElement('img');
             imgElement.src = imageUrl;
-            imgElement.classList.add('uploaded-img'); 
+            imgElement.classList.add('uploaded-img');
             imgElement.style.marginTop = "10px";
             imgElement.style.borderRadius = "8px";
 
@@ -221,13 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 payloadTarget.innerText = `Aqui está a sua imagem: "${imagePrompt}"`;
                 messageDiv.appendChild(imgElement);
                 scrollToBottom();
-                saveMessageToHistory('image', imageUrl, 'Imagem Gerada por IA');
+                saveMessageToHistory('image', 'bot', imageUrl, 'Imagem Gerada por IA');
             };
 
             imgElement.onerror = () => {
                 payloadTarget.innerText = "Ops! O servidor de imagens falhou. Tente novamente.";
             };
-            return; 
+            return;
         }
 
         try {
@@ -239,8 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Erro no servidor');
-            
+
             typeResponseFast(payloadTarget, data.reply);
+            saveMessageToHistory('text', 'bot', data.reply);
 
         } catch (error) {
             console.error(error);
@@ -261,14 +281,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             hideWelcomeScreen();
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 const fileData = e.target.result;
                 if (file.type.startsWith('image/')) {
                     createImageMessageElement(fileData);
-                    saveMessageToHistory('image', fileData, file.name);
+                    saveMessageToHistory('image', 'user', fileData, file.name);
                 } else {
                     createFileCardElement(file.name, 'Documento');
-                    saveMessageToHistory('file', fileData, file.name);
+                    saveMessageToHistory('file', 'user', fileData, file.name);
                 }
                 createBotResponse(`Recebi o arquivo "${file.name}". O que quer fazer com ele?`);
             };
@@ -327,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        userInput.addEventListener('input', function() {
+        userInput.addEventListener('input', function () {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
         });
