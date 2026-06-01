@@ -148,20 +148,19 @@ function typeResponseFast(element, text) {
     
     function type() {
         if (i < text.length) {
-            // Digita de 3 em 3 caracteres para parecer extremamente rápido e fluido
             element.innerText += text.substring(i, i + 3);
             i += 3;
             scrollToBottom();
-            setTimeout(type, 2); // Intervalo mínimo de milissegundos
+            setTimeout(type, 2);
         } else {
-            element.innerText = text; // Garante que o texto final está idêntico
+            element.innerText = text;
             scrollToBottom();
         }
     }
     type();
 }
 
-// --- INTEGRAÇÃO COM A IA (VERSÃO OFICIAL VERCEL) ---
+// --- INTEGRAÇÃO COM A IA (VERSÃO VERCEL COM GERADOR DE IMAGENS COMPLETO) ---
 async function createBotResponse(userText) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', 'bot');
@@ -170,9 +169,48 @@ async function createBotResponse(userText) {
     scrollToBottom();
 
     const payloadTarget = messageDiv.querySelector('.bot-payload');
+    const textoMinusculo = userText.toLowerCase();
 
+    // Filtro completo para interceptar qualquer intenção ou comando de geração de imagem
+    const termosImagem = ['imagem', 'imagens', 'image', 'images', 'desenhe', 'desenho', 'desenha', 'crie uma foto', 'gere uma foto', 'ilustre', 'ilustração', 'foto de', 'pinte', 'gerar foto', 'criar foto', 'avatar'];
+    const isImageRequest = termosImagem.some(palavra => textoMinusculo.includes(palavra)) || textoMinusculo.startsWith("/imagem");
+
+    if (isImageRequest) {
+        let imagePrompt = userText
+            .replace(/\/imagem /i, "")
+            .replace(/crie uma imagem (de )?(um )?(uma )?/i, "")
+            .replace(/gere uma imagem (de )?(um )?(uma )?/i, "")
+            .replace(/desenhe (um )?(uma )?/i, "")
+            .replace(/ilustre (um )?(uma )?/i, "")
+            .replace(/crie uma foto (de )?(um )?(uma )?/i, "")
+            .replace(/gere uma foto (de )?(um )?(uma )?/i, "")
+            .trim();
+
+        payloadTarget.innerText = "Preparando os pincéis... Gerando sua imagem 🎨";
+        
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=1024&height=1024&nologo=true`;
+        
+        const imgElement = document.createElement('img');
+        imgElement.src = imageUrl;
+        imgElement.classList.add('uploaded-img'); 
+        imgElement.style.marginTop = "10px";
+        imgElement.style.borderRadius = "8px";
+
+        imgElement.onload = () => {
+            payloadTarget.innerText = `Aqui está a sua imagem: "${imagePrompt}"`;
+            messageDiv.appendChild(imgElement);
+            scrollToBottom();
+            saveMessageToHistory('image', imageUrl, 'Imagem Gerada por IA');
+        };
+
+        imgElement.onerror = () => {
+            payloadTarget.innerText = "Ops! O servidor de imagens falhou. Tente novamente.";
+        };
+        return; 
+    }
+
+    // Rota oculta /api/chat segura do Vercel
     try {
-        // Envia o texto para a nossa rota oculta /api/chat
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -182,12 +220,11 @@ async function createBotResponse(userText) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Erro no servidor');
         
-        // Ativa a animação de velocidade
         typeResponseFast(payloadTarget, data.reply);
 
     } catch (error) {
         console.error(error);
-        payloadTarget.innerText = "Erro ao processar resposta securitária no Vercel.";
+        payloadTarget.innerText = "Erro ao processar resposta no Vercel.";
     }
 }
 
