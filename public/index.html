@@ -14,74 +14,83 @@
 
 <body>
 
-    <!-- Tela de Login / Cadastro (Auth) -->
-    <div class="auth-overlay" id="authOverlay">
-        <div class="auth-box">
-            <h2 id="authTitle">Entrar no Gêmeos</h2>
-            <p id="authSubtitle">Faça login para salvar suas conversas</p>
-            <div class="auth-input-group">
-                <input type="text" id="authUsername" placeholder="Nome de usuário" autocomplete="off">
-            </div>
-            <div class="auth-input-group">
-                <input type="password" id="authPassword" placeholder="Sua senha">
-            </div>
-            <button id="authSubmitBtn">Entrar</button>
-            <div class="auth-toggle">
-                Não tem uma conta? <span id="authToggleLink">Cadastre-se</span>
+    <!-- TELA DE AUTENTICAÇÃO (OVERLAY DE LOGIN) -->
+<div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+        <h2 id="authTitle">Entrar no Gêmeos</h2>
+        <p id="authSubtitle">Faça login para salvar suas conversas</p>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="authUsername" placeholder="Nome de usuário">
+        </div>
+        
+        <div class="auth-input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="authPassword" placeholder="Sua senha">
+        </div>
+        
+        <button class="auth-btn" id="authSubmitBtn">Entrar</button>
+        
+        <p class="auth-footer">Non possui uma conta? <span id="authToggleLink">Cadastre-se</span></p>
+    </div>
+</div>
+
+<!-- ESTRUTURA PRINCIPAL DO APLICATIVO -->
+<div class="app-container">
+    
+    <!-- BARRA LATERAL (HISTÓRICO) -->
+    <aside class="sidebar">
+        <button class="new-chat-btn" id="newChatBtn">
+            <i class="fa-solid fa-plus"></i> Novo Chat
+        </button>
+        
+        <div class="history-container" id="historyContainer">
+            <!-- Os itens de histórico de conversas entrarão aqui via JS -->
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-badge" id="userBadge">U</div>
+                <button class="logout-btn" id="logoutBtn" title="Sair da Conta">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
             </div>
         </div>
-    </div>
+    </aside>
 
-    <!-- Interface Principal do Aplicativo -->
-    <div class="app-container">
-        <!-- Barra Lateral (Histórico) -->
-        <aside class="sidebar">
-            <button class="new-chat-btn" id="newChatBtn">
-                <i class="fa-solid fa-plus"></i> Novo Chat
-            </button>
-            <div class="history-container" id="historyContainer">
-                <!-- Os cards de histórico de chats entram aqui dinamicamente -->
+    <!-- ÁREA PRINCIPAL DO CHAT -->
+    <main class="chat-area">
+        
+        <!-- Janela de Mensagens -->
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-screen" id="welcomeScreen">
+                <h1>Olá, eu sou o Gêmeos.</h1>
+                <p>Envie uma mensagem para iniciar e salvar esta conversa.</p>
             </div>
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-badge" id="userBadge">U</div>
-                    <button class="logout-btn" id="logoutBtn" title="Sair da Conta">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </div>
+        </div>
+        
+        <!-- Barra de Entrada de Texto e Comandos -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <button class="action-btn" id="attachBtn" title="Anexar Arquivo">
+                    <i class="fa-solid fa-paperclip"></i>
+                </button>
+                <input type="file" id="fileInput" style="display: none;">
+                
+                <textarea id="userInput" placeholder="Converse com o Gêmeos..." rows="1"></br></textarea>
+                
+                <button class="send-btn" id="sendBtn" title="Enviar Mensagem">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
             </div>
-        </aside>
+        </div>
 
-        <!-- Área Principal do Chat -->
-        <main class="chat-area">
-            <div class="chat-container" id="chatContainer">
-                <!-- Mensagem de Boas-Vindas Inicial -->
-                <div class="welcome-screen" id="welcomeScreen">
-                    <h1>Olá, eu sou o Gêmeos.</h1>
-                    <p>Envie uma mensagem para iniciar e salvar esta conversa.</p>
-                </div>
-            </div>
+    </main>
+</div>
 
-            <!-- Barra de Entrada de Mensagens -->
-            <div class="input-area">
-                <div class="input-wrapper">
-                    <button class="attach-btn" id="attachBtn" title="Enviar Arquivo">
-                        <i class="fa-solid fa-paperclip"></i>
-                    </button>
-                    <input type="file" id="fileInput" style="display: none;">
-
-                    <textarea id="userInput" placeholder="Converse com o Gêmeos ou peça uma imagem..."
-                        rows="1"></textarea>
-
-                    <button class="send-btn" id="sendBtn" title="Enviar Mensagem">
-                        <i class="fa-solid fa-arrow-up"></i>
-                    </button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="script.js"></script>
+<!-- Carrega a lógica principal depois que os elementos HTML já existem -->
+<script src="script.js"></script>
 </body>
 
 </html>
